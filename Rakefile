@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "bio-cigar"
   gem.homepage = "http://github.com/wwood/bioruby-cigar"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A parser for CIGAR format alignments}
+  gem.description = %Q{A parser for CIGAR format alignments.}
   gem.email = "donttrustben@gmail.com"
   gem.authors = ["Ben J Woodcroft"]
   # dependencies defined in Gemfile
