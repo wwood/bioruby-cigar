@@ -22,10 +22,10 @@ require 'bio-cigar'
 cigar_string = '3S8M1D6M4S'
 cigar = Bio::Cigar.new(cigar_string) #=> Bio::Cigar object
 
-# REF:  GTGTCGCCCGTCTAGCATACGC
+# REF:     TCGCCCGTCTAGCATACGC
 # READ: gggGTGTAACC-GACTAGgggg
 # MATCH:---001000000010010----
-ref =   'GTGTCGCCCGTCTAGCATACGCCCGTCTAGCATACGC'
+ref =   'TCGCCCGTCTAGCATACGCCCGTCTAGCATACGC'
 query = 'gggGTGTAACCGACTAGgggg'
 answer = cigar.percent_identity(ref, query)
 answer.should == [

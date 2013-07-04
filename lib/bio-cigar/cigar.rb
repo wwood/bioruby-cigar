@@ -32,7 +32,7 @@ module Bio
           num_mismatch += count
           ref_index += count
         when 'S'
-          ref_index += count
+          #ref_index += count
           query_index += count
         else
           raise "Cigar string not parsed correctly. Unrecognised alignment type #{type}"
