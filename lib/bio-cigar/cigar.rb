@@ -34,6 +34,8 @@ module Bio
         when 'S'
           #ref_index += count
           query_index += count
+        when 'H'
+          query_index += count
         else
           raise "Cigar string not parsed correctly. Unrecognised alignment type #{type}"
         end
@@ -53,7 +55,7 @@ module Bio
     #    end
     def each_alignment_chunk
       leftover = @cigar_string
-      while matches = leftover.match(/^(\d+)([MSID])(.*)/)
+      while matches = leftover.match(/^(\d+)([MSIHD])(.*)/)
         yield matches[2], matches[1].to_i
         leftover = matches[3]
       end
