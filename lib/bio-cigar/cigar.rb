@@ -13,17 +13,11 @@ module Bio
       ref_index = 0
       query_index = 0
       each_alignment_chunk do |type, count|
+#         puts "ref_i=#{ref_index}, query_index=#{query_index}, num_match=#{num_match}, num_mismatch=#{num_mismatch}"
+#         puts "#{type} #{count}"
+#         puts "ref=#{reference_sequence_string[ref_index...(reference_sequence_string.length)] }"
+#         puts "query=#{query_sequence_string[query_index...(query_sequence_string.length)] }"
         case type
-        when 'M'
-          (0...count).each do |i|
-            if reference_sequence_string[ref_index+i] == query_sequence_string[query_index+i]
-              num_match += 1
-            else
-              num_mismatch += 1
-            end
-          end
-          ref_index += count
-          query_index += count
         when 'I'
           # Extra characters in the query sequence
           num_mismatch += count
@@ -36,12 +30,31 @@ module Bio
           query_index += count
         when 'H'
           query_index += count
+        when 'P'
+          # Do nothing
+        when 'N'
+          # long skip on the reference sequence
+          ref_index += count
         else
-          raise "Cigar string not parsed correctly. Unrecognised alignment type #{type}"
+          if %w(M = X).include?(type)
+            # For = and X, ignore these and recalculate, for ease of programming this method.
+            (0...count).each do |i|
+              if reference_sequence_string[ref_index+i] == query_sequence_string[query_index+i]
+                num_match += 1
+              else
+                num_mismatch += 1
+              end
+            end
+            ref_index += count
+            query_index += count
+          else
+            raise "Cigar string not parsed correctly. Unrecognised alignment type #{type}"
+          end
         end
+        #puts "after, ref_i=#{ref_index}, query_index=#{query_index}, num_match=#{num_match}, num_mismatch=#{num_mismatch}"
       end
 
-      percent = num_match.to_f/(num_match+num_mismatch)*100
+      percent = num_match.to_f / (num_match+num_mismatch)*100
       return percent, num_match, num_mismatch
     end
 
@@ -55,7 +68,7 @@ module Bio
     #    end
     def each_alignment_chunk
       leftover = @cigar_string
-      while matches = leftover.match(/^(\d+)([MSIHD])(.*)/)
+      while matches = leftover.match(/^(\d+)([MSIHNDP\=X])(.*)/)
         yield matches[2], matches[1].to_i
         leftover = matches[3]
       end
