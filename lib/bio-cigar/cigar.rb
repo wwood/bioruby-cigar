@@ -6,7 +6,13 @@ module Bio
       @cigar_string = cigar_string
     end
 
-    def percent_identity(reference_sequence_string, query_sequence_string)
+    # Given a reference sequence and a query sequence, return an Array of 3 values:
+    # [% identity, num_match, num_mismatch].
+    #
+    # Options:
+    # :reference_starting_position: only consider the from this position in the reference sequence
+    # :alignment_length: only consider this much of the reference sequence
+    def percent_identity(reference_sequence_string, query_sequence_string, options={})
       num_match = 0
       num_mismatch = 0
 
@@ -51,6 +57,7 @@ module Bio
             raise "Cigar string not parsed correctly. Unrecognised alignment type #{type}"
           end
         end
+
         #puts "after, ref_i=#{ref_index}, query_index=#{query_index}, num_match=#{num_match}, num_mismatch=#{num_mismatch}"
       end
 
