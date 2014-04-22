@@ -10,8 +10,8 @@ module Bio
     # [% identity, num_match, num_mismatch].
     #
     # Options:
-    # :reference_starting_position: only consider the from this position in the reference sequence
-    # :alignment_length: only consider this much of the reference sequence
+    # :reference_starting_position: only consider the from this position in the reference sequence. Note this is 1-based indices, not 0-based
+    # :alignment_length: only consider this much of the reference sequence (requires :reference_starting_position to be specified also.)
     def percent_identity(reference_sequence_string, query_sequence_string, options={})
       num_match = 0
       num_mismatch = 0
@@ -19,18 +19,32 @@ module Bio
       ref_index = 0
       query_index = 0
       each_alignment_chunk do |type, count|
-#         puts "ref_i=#{ref_index}, query_index=#{query_index}, num_match=#{num_match}, num_mismatch=#{num_mismatch}"
-#         puts "#{type} #{count}"
-#         puts "ref=#{reference_sequence_string[ref_index...(reference_sequence_string.length)] }"
-#         puts "query=#{query_sequence_string[query_index...(query_sequence_string.length)] }"
+        puts "ref_i=#{ref_index}, query_index=#{query_index}, num_match=#{num_match}, num_mismatch=#{num_mismatch}"
+        puts "#{type} #{count}"
+        puts "ref=#{reference_sequence_string[ref_index...(reference_sequence_string.length)] }"
+        puts "query=#{query_sequence_string[query_index...(query_sequence_string.length)] }"
+        if options[:alignment_length] and ref_index >= options[:reference_starting_position]+options[:alignment_length]
+          puts 'breaking'
+          break
+        end
+
         case type
         when 'I'
           # Extra characters in the query sequence
-          num_mismatch += count
+          num_mismatch += count if options[:reference_starting_position].nil? or ref_index+1 < options[:reference_starting_position]
           query_index += count
         when 'D'
-          num_mismatch += count
-          ref_index += count
+          (0...count).each do |i|
+            puts "Deleting at i #{i}"
+            if options[:reference_starting_position].nil? or ref_index+1 >= options[:reference_starting_position]
+              if options[:alignment_length] and ref_index+1 >= options[:reference_starting_position]+options[:alignment_length]
+                puts 'breaking2'
+                break #alignment region ends in the middle of a deletion
+              end
+              num_mismatch += 1
+            end
+            ref_index += 1
+          end
         when 'S'
           #ref_index += count
           query_index += count
@@ -43,12 +57,21 @@ module Bio
           ref_index += count
         else
           if %w(M = X).include?(type)
-            # For = and X, ignore these and recalculate, for ease of programming this method.
+            # For = and X, treat as if they were an M for ease of programming this method.
             (0...count).each do |i|
-              if reference_sequence_string[ref_index+i] == query_sequence_string[query_index+i]
-                num_match += 1
-              else
-                num_mismatch += 1
+              if options[:alignment_length] and ref_index+1 >= options[:reference_starting_position]+options[:alignment_length]
+                # alignment region ends
+                puts 'breaking3'
+                break
+              end
+
+              if options[:reference_starting_position].nil? or ref_index+i+1 >= options[:reference_starting_position]
+                puts "comparing at #{i}"
+                if reference_sequence_string[ref_index+i] == query_sequence_string[query_index+i]
+                  num_match += 1
+                else
+                  num_mismatch += 1
+                end
               end
             end
             ref_index += count

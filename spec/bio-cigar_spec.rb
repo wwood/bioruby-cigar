@@ -109,4 +109,46 @@ describe "BioCigar" do
       expected_mismatches,
       ]
   end
+
+  it 'should work with an alignment length for easy case' do
+    cigar_string = '3S8M1D6M4S'
+    cigar = Bio::Cigar.new(cigar_string) #=> Bio::Cigar object
+    cigar.should be_kind_of(Bio::Cigar)
+
+    # REF:  GTGTCGCCCGTCTAGCATACGC
+    # READ: gggGTGTAACC-GACTAGgggg
+    # MATCH:---001000000010010----
+    ref =     'TCGCCCGTCTAGCATACGC'
+    query = 'gggGTGTAACCGACTAGgggg'
+    cigar.percent_identity(ref, query, :reference_starting_position => 1).should == [20.0, 3, 12] #=> 20.0 (3/15 is 20% identity)
+
+    cigar.percent_identity(ref, query, :reference_starting_position => 3)[1..2].should == [3, 10]
+    cigar.percent_identity(ref, query, :reference_starting_position => 4)[1..2].should == [2, 10]
+    cigar.percent_identity(ref, query, :reference_starting_position => 10)[1..2].should == [2, 4]
+  end
+
+  it 'should work with contrained alignment length' do
+    cigar_string = '3S8M1D6M4S'
+    cigar = Bio::Cigar.new(cigar_string) #=> Bio::Cigar object
+    cigar.should be_kind_of(Bio::Cigar)
+
+    # REF:  GTGTCGCCCGTCTAGCATACGC
+    # READ: gggGTGTAACC-GACTAGgggg
+    # MATCH:---001000000010010----
+    ref =     'TCGCCCGTCTAGCATACGC'
+    query = 'gggGTGTAACCGACTAGgggg'
+    cigar.percent_identity(ref, query,
+      {
+        :reference_starting_position => 1,
+        :alignment_length => 15
+        }).should == [20.0, 3, 12] #=> 20.0 (3/15 is 20% identity)
+
+    cigar.percent_identity(ref, query,
+      {
+        :reference_starting_position => 1,
+        :alignment_length => 14
+        })[1..2].should == [3, 11]
+
+    #TODO: more testing e.g. breaking within a deletion, on a boundary, different starting positions.
+  end
 end
